@@ -31,13 +31,19 @@ BUILD="$(realpath "build/${MODEL}")"
 rm -rf "${BUILD:?}/${BASEDIR}"
 mkdir -p "${BUILD}/${BASEDIR}"
 
-# Rebuild and copy firmware-update
-pushd apps/firmware-update >/dev/null
-    rm -rf "build/x86_64-unknown-uefi"
-    make "build/x86_64-unknown-uefi/boot.efi"
-    cp -v "build/x86_64-unknown-uefi/boot.efi" "${BUILD}/${BASEDIR}"
-    cp -rv "res" "${BUILD}/${BASEDIR}"
-popd >/dev/null
+# Copy firmware-update if pre-built, or otherwise rebuild
+if [ -e "${BUILD}/firmware-update" ]
+then
+    cp -v "${BUILD}/firmware-update/boot.efi" "${BUILD}/${BASEDIR}"
+    cp -rv "${BUILD}/firmware-update/res" "${BUILD}/${BASEDIR}"
+else
+    pushd apps/firmware-update >/dev/null
+        rm -rf "build/x86_64-unknown-uefi"
+        make "build/x86_64-unknown-uefi/boot.efi"
+        cp -v "build/x86_64-unknown-uefi/boot.efi" "${BUILD}/${BASEDIR}"
+        cp -rv "res" "${BUILD}/${BASEDIR}"
+    popd >/dev/null
+fi
 
 # Copy firmware
 mkdir -p "${BUILD}/${BASEDIR}/firmware"

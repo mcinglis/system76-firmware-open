@@ -7,6 +7,16 @@
 
 set -e
 
+# Parse options:
+#     -u            Build crossgcc from upstream sources, not coreboot mirror.
+CROSSGCC_COREBOOT_MIRROR=1
+while getopts u opt; do
+    case "$opt" in
+        u) CROSSGCC_COREBOOT_MIRROR=0 ;;
+    esac
+done
+shift $((OPTIND - 1))
+
 . /etc/os-release
 if [ "$ID" = "arch" ] || [[ "$ID_LIKE" =~ "arch" ]]; then
     sudo pacman -S --noconfirm \
@@ -61,7 +71,9 @@ else
     exit 1
 fi
 
-BUILDGCC_OPTIONS+="--mirror"
+if [ "$CROSSGCC_COREBOOT_MIRROR" -eq 1 ]; then
+    BUILDGCC_OPTIONS+="--mirror"
+fi
 export BUILDGCC_OPTIONS
 
 make -C coreboot \
